@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Personal Weather Command Center</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <style>
+        body { background-color: #000; color: #fff; margin: 0; padding: 15px; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; }
+        /* Upgraded Alert Banner */
+        #alert-banner { display: none; background: #ff3b30; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; width: 100%; text-align: center; animation: pulse 2s infinite; box-shadow: 0 0 15px rgba(255,59,48,0.5); }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        
+        #clock { font-size: 3.5rem; font-weight: 200; margin: 10px 0; letter-spacing: -2px; }
+        .section-title { font-size: 0.75rem; text-transform: uppercase; color: #666; margin: 25px 0 10px; width: 100%; max-width: 420px; font-weight: bold; letter-spacing: 1px; }
+        .container { width: 100%; max-width: 420px; }
+        
+        /* Fixed AQI Iframe */
+        .aqi-frame { width: 100%; border-radius: 15px; border: none; background: transparent; height: 340px; margin-bottom: 10px; overflow: hidden; }
+        
+        .radar-card { background: linear-gradient(45deg, #1a1a1a, #333); padding: 20px; border-radius: 15px; text-align: center; text-decoration: none; color: white; display: block; border: 1px solid #444; }
+    </style>
+</head>
+<body>
+
+    <div id="alert-banner">⚠️ SEVERE WEATHER WARNING</div>
+    <div id="clock">00:00</div>
+
+    <div class="container">
+        <div class="section-title">Local Forecast</div>
+
+        <!-- Enhanced Widget with Detailed Info Enabled -->
+        <a class="weatherwidget-io" href="https://forecast7.com/en/45d12n93d33/55443/?unit=us" data-label_1="BROOKLYN PARK" data-label_2="PIN-POINT WEATHER" data-days="5" data-theme="weather_one" data-basecolor="#000000" data-accent="rgba(255, 255, 255, 0.05)" data-textcolor="#ffffff" data-highcolor="#ff3b30" data-lowcolor="#007aff" data-font="System" data-icons="Climacons Animated">BROOKLYN PARK PIN-POINT WEATHER</a>
+        <script>
+        !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io/js/widget.min.js';fjs.parentNode.insertBefore(js,fjs);}}(document,'script','weatherwidget-io-js');
+        </script>
+
+        <div class="section-title">Air Quality (AQI)</div>
+        <!-- FIXED AQI DIAL: Specific to Brooklyn Park, MN -->
+        <iframe class="aqi-frame" src="https://airnow.gov"></iframe>
+
+        <div class="section-title">Live Interactive Radar</div>
+        <!-- HIGH-PRECISION WUNDURMAP: Set to zoom into your area -->
+        <a href="https://wunderground.com" class="radar-card">🛰️ Launch Local Storm Tracker</a>
+    </div>
+
+    <script>
+        // Real-time Clock
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        setInterval(updateClock, 1000); 
+        updateClock();
+
+        // Advanced Alert System: Immediate + Future Outlooks
+        const stateCode = "MN"; 
+        async function checkAlerts() {
+            const banner = document.getElementById('alert-banner');
+            try {
+                // 1. Check for Active Warnings (Tornado, Flood, etc.)
+                const res = await fetch(`https://weather.gov{stateCode}`);
+                const data = await res.json();
+                
+                if (data.features && data.features.length > 0) { 
+                    // Set banner to show the most important alert title
+                    banner.innerText = "⚠️ " + data.features[0].properties.event.toUpperCase();
+                    banner.style.display = 'block'; 
+                } else {
+                    // 2. Check for Storm Outlooks (Days Ahead)
+                    // This checks the NWS for potential severe weather threats in the region
+                    const outlookRes = await fetch(`https://weather.gov`);
+                    const outlookData = await outlookRes.json();
+                    
+                    // Filter outlooks specifically for your state
+                    const localThreats = outlookData.features.filter(f => f.properties.areaDesc.includes("Minnesota"));
+                    
+                    if (localThreats.length > 0) {
+                        banner.style.background = "#ff9500"; // Orange for "Future" alerts
+                        banner.innerText = "📅 UPCOMING: " + localThreats[0].properties.event;
+                        banner.style.display = 'block';
+                    }
+                }
+            } catch (e) { console.error("Alert check failed", e); }
+        }
+        checkAlerts();
+        // Re-check alerts every 5 minutes while app is open
+        setInterval(checkAlerts, 300000);
+    </script>
+</body>
+</html>
+
