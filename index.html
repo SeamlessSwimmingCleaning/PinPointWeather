@@ -2,68 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pin-Point Weather Service</title>
-
-    <!-- App Mode Meta Tags -->
+    <title>Weather Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
     
-    <!-- CUSTOM APP ICON -->
+    <!-- FIXES BLOCKED CONTENT -->
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <link rel="apple-touch-icon" href="https://flaticon.com">
 
     <style>
         body { background-color: #000; color: #fff; margin: 0; padding: 15px; font-family: -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; }
-        #alert-banner { display: none; background: #ff3b30; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; width: 100%; text-align: center; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        #clock { font-size: 3.5rem; font-weight: 200; margin: 10px 0; letter-spacing: -2px; }
-        .section-title { font-size: 0.75rem; text-transform: uppercase; color: #666; margin: 25px 0 10px; width: 100%; max-width: 420px; font-weight: bold; letter-spacing: 1px; }
-        .container { width: 100%; max-width: 420px; }
-        iframe { width: 100%; border-radius: 15px; border: none; background: #111; margin-bottom: 10px; }
-        .radar-card { background: linear-gradient(45deg, #1a1a1a, #333); padding: 20px; border-radius: 15px; text-align: center; text-decoration: none; color: white; display: block; border: 1px solid #444; }
+        #clock { font-size: 3.5rem; font-weight: 200; margin: 10px 0; }
+        .section-title { font-size: 0.75rem; text-transform: uppercase; color: #666; margin: 25px 0 10px; width: 100%; max-width: 400px; font-weight: bold; }
+        .container { width: 100%; max-width: 400px; }
+        #alert-banner { display: none; background: #ff3b30; color: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; width: 100%; text-align: center; }
+        iframe { width: 100%; border-radius: 15px; border: none; background: #111; height: 350px; }
+        .radar-card { background: #333; padding: 20px; border-radius: 15px; text-align: center; text-decoration: none; color: white; display: block; }
     </style>
 </head>
 <body>
 
-    <div id="alert-banner">⚠️ SEVERE WEATHER ALERT IN EFFECT</div>
+    <div id="alert-banner">⚠️ SEVERE WEATHER ALERT</div>
     <div id="clock">00:00</div>
 
     <div class="container">
-        <div class="section-title">Local Forecast</div>
-        <a class="weatherwidget-io" href="https://forecast7.com" data-label_1="BROOKLYN PARK" data-label_2="PIN-POINT WEATHER" data-days="5" data-theme="weather_one">BROOKLYN PARK PIN-POINT WEATHER</a>
+        <div class="section-title">Forecast</div>
+        <!-- WEATHERWIDGET.IO FIXED SCRIPT -->
+        <a class="weatherwidget-io" href="https://forecast7.com" data-label_1="BROOKLYN PARK" data-label_2="WEATHER" data-theme="pure">BROOKLYN PARK</a>
         <script>
         !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src='https://weatherwidget.io;}}(document,'script','weatherwidget-io-js');
         </script>
 
-        <div class="section-title">Air Quality (AQI)</div>
-        <!-- FIXED: Official AirNow Widget -->
-        <iframe height="340" src="https://airnow.gov"></iframe>
+        <div class="section-title">Air Quality</div>
+        <!-- STABLE AQI WIDGET -->
+        <iframe src="https://airnow.gov"></iframe>
 
-        <div class="section-title">Live Interactive Radar</div>
-        <a href="https://wunderground.com" class="radar-card">🛰️ Launch Local Storm Tracker</a>
+        <div class="section-title">Radar</div>
+        <a href="https://wunderground.com" class="radar-card">🛰️ Launch Interactive Radar</a>
     </div>
 
     <script>
         function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
         setInterval(updateClock, 1000); updateClock();
 
-        const stateCode = "MN"; 
         async function checkAlerts() {
             try {
-                const res = await fetch(`https://weather.gov{stateCode}`);
+                const res = await fetch(`https://weather.gov`);
                 const data = await res.json();
-                if (data.features && data.features.length > 0) { 
-                    document.getElementById('alert-banner').style.display = 'block'; 
-                }
-            } catch (e) { console.error("Alert check failed", e); }
+                if (data.features.length > 0) document.getElementById('alert-banner').style.display = 'block';
+            } catch (e) {}
         }
         checkAlerts();
     </script>
 </body>
 </html>
-
-
